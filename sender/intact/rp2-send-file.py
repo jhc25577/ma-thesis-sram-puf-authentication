@@ -2,6 +2,10 @@ import socket
 import os
 import time
 import errno
+import ecies
+
+# TODO: Make an official public key and private key
+pubkey = 0x123123141
 
 def client_program():
     # host = "192.168.178.40"  # when considering static ip
@@ -142,14 +146,22 @@ def client_program():
         
         # open the file in read binary mode
         with open(filename, "rb") as file:
+            # TODO: base 64 encoder for null values
+            eccdata = ecies.encrypt(pubkey, file.read())
+            i = 0
             while True:
                 # read the bytes from the file
-                bytes_read = file.read(BUFFER_SIZE)
-                if not bytes_read:
-                    # file transmitting is done
+                try:
+                    bytes_read = eccdata[i*BUFFER_SIZE:(i+1)*BUFFER_SIZE]
+                except IndexError:
                     break
+                # if not bytes_read:
+                #     # file transmitting is done
+                #     break
                 # sendall to assure transimission in busy networks
+                # TODO: base64 decoder for null values
                 client_socket.sendall(bytes_read)
+                i = i+1
     
     except BrokenPipeError:
         print("Connection closed by remote server.. try again!")
