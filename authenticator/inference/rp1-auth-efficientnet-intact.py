@@ -5,9 +5,7 @@ import model_inference as mi
 import argparse
 import ecies
 import tempfile
-
-# TODO: need to make a private key
-privkey = 0x23139123
+from ecies.utils import generate_eth_key, generate_key
 
 def server_program():
     # get the hostname/ip address
@@ -25,6 +23,13 @@ def server_program():
     BUFFER_SIZE = 4096
     SEPARATOR = "<SEPARATOR>"
     ENCODING = "utf-8"
+
+    # TODO: create a public and private key using ecies
+    eth_k = generate_eth_key()
+    # private key
+    sk_hex = eth_k.to_hex()
+    # public key
+    pk_hex = eth_k.public.to_hex()
 
     # configure how many client the server can listen simultaneously
     server_socket.listen(1)
@@ -63,6 +68,8 @@ def server_program():
     if board in devices:
         time.sleep(2)
         
+        # TODO: send public key
+        # conn.send(f"{pk_hex}".encode())
         # file related stuff
         conn.send("Please send the board image".encode(ENCODING))
         received = conn.recv(BUFFER_SIZE).decode()
@@ -84,7 +91,7 @@ def server_program():
                 f.write(bytes_read)
             
             ecc = f.read()
-            img = ecies.decrypt(privkey, ecc)
+            img = ecies.decrypt(sk_hex, ecc)
             with open(filename, "wb") as file:
                 file.write(img)
 
