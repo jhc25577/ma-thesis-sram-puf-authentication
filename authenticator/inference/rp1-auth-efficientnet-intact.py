@@ -27,7 +27,9 @@ def server_program():
     # TODO: create a public and private key using ecies
     eth_k = generate_eth_key()
     # private key
-    sk_hex = eth_k.to_hex()
+    # sk_hex = eth_k.to_hex()
+    # temporary private key
+    sk_hex = 0xc82be1019b06e83b2544461c3b3d91e8eb44462e1dcaea6b7441af648a61a3b7
     # public key
     pk_hex = eth_k.public.to_hex()
 
@@ -80,7 +82,8 @@ def server_program():
         print("Receiving file:", filename)
 
         # TODO: probably make a temp file and then decrypt it to make a real file
-        with tempfile.TemporaryFile() as f:
+        ecc = bytearray()
+        with open(filename, "wb") as f:
             while True:
                 # read 1024 bytes from the socket (receive)
                 bytes_read = conn.recv(BUFFER_SIZE)
@@ -88,12 +91,10 @@ def server_program():
                 # terminate file transmitting is done
                     break
                 # write to the file the bytes we just received
-                f.write(bytes_read)
-            
-            ecc = f.read()
-            img = ecies.decrypt(sk_hex, ecc)
-            with open(filename, "wb") as file:
-                file.write(img)
+                ecc.extend(bytes_read)
+            # TODO: base64 decoding before/after decrypting
+            img = ecies.decrypt(sk_hex, bytes(ecc))
+            f.write(img)
 
             
 
