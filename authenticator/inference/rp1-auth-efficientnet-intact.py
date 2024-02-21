@@ -3,6 +3,11 @@ import time
 import os
 import model_inference as mi
 import argparse
+import ecies
+import tempfile
+
+# TODO: need to make a private key
+privkey = 0x23139123
 
 def server_program():
     # get the hostname/ip address
@@ -67,8 +72,8 @@ def server_program():
         # informing the recived file 
         print("Receiving file:", filename)
 
-        
-        with open(filename, "wb") as file:
+        # TODO: probably make a temp file and then decrypt it to make a real file
+        with tempfile.TemporaryFile() as f:
             while True:
                 # read 1024 bytes from the socket (receive)
                 bytes_read = conn.recv(BUFFER_SIZE)
@@ -76,7 +81,14 @@ def server_program():
                 # terminate file transmitting is done
                     break
                 # write to the file the bytes we just received
-                file.write(bytes_read)
+                f.write(bytes_read)
+            
+            ecc = f.read()
+            img = ecies.decrypt(privkey, ecc)
+            with open(filename, "wb") as file:
+                file.write(img)
+
+            
 
         print("File received. model being executed..")
         time.sleep(2)
