@@ -4,8 +4,8 @@ import time
 import errno
 import ecies
 
-# TODO: Make an official public key and private key
-pubkey = 0x123123141
+# TODO: receive pubkey from server
+pubkey = 0x8239846f91c5022283bf8350f9b6c94f7fe3dec7d8dea229aa9c526707721a539790ed68c769712e4116055a8fc046a5dabb30ce74ff55a95d555ccf3d5df8e3
 
 def client_program():
     # host = "192.168.178.40"  # when considering static ip
@@ -130,8 +130,11 @@ def client_program():
 
     print("Sending auth request to server...")
     time.sleep(3)
-  
-     
+    
+    # TODO: receive public key 
+    # pubkey = client_socket.recv(BUFFER_SIZE).decode()
+    # print("From server public key")
+
     msg = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     print("From server:", msg)
    
