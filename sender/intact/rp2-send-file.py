@@ -5,11 +5,12 @@ import errno
 import ecies
 
 # TODO: receive pubkey from server
-pubkey = 0x8239846f91c5022283bf8350f9b6c94f7fe3dec7d8dea229aa9c526707721a539790ed68c769712e4116055a8fc046a5dabb30ce74ff55a95d555ccf3d5df8e3
+pubkey = "0x8239846f91c5022283bf8350f9b6c94f7fe3dec7d8dea229aa9c526707721a539790ed68c769712e4116055a8fc046a5dabb30ce74ff55a95d555ccf3d5df8e3"
 
 def client_program():
+    host = "132.231.14.165"
     # host = "192.168.178.40"  # when considering static ip
-    host = "rp-labs1.local"  # assign hostname
+    # host = "rp-labs1.local"  # assign hostname
     port = 18000  # socket server port number
 
     client_socket = socket.socket()  # instantiate client socket
@@ -147,20 +148,21 @@ def client_program():
         # send the filename and filesize
         client_socket.send(f"{filename}{SEPARATOR}{filesize}".encode())
         
+        print("Filename and size sent.")
+        
         # open the file in read binary mode
         with open(filename, "rb") as file:
             # TODO: base 64 encoder for null values
             eccdata = ecies.encrypt(pubkey, file.read())
             i = 0
+            print("Encrypted.")
             while True:
                 # read the bytes from the file
-                try:
-                    bytes_read = eccdata[i*BUFFER_SIZE:(i+1)*BUFFER_SIZE]
-                except IndexError:
+                bytes_read = eccdata[i*BUFFER_SIZE:(i+1)*BUFFER_SIZE]
+                
+                if not bytes_read:
+                    # file transmitting is done
                     break
-                # if not bytes_read:
-                #     # file transmitting is done
-                #     break
                 # sendall to assure transimission in busy networks
                 # TODO: base64 decoder for null values
                 client_socket.sendall(bytes_read)
