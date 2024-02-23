@@ -136,7 +136,9 @@ def client_program():
     # receive public key from server
     PubKey = client_socket.recv(BUFFER_SIZE).decode()
     print("From server public key: ", PubKey)
-
+    
+    client_socket.send("Public key received".encode("utf-8"))
+    
     msg = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     print("From server:", msg)
    
@@ -179,7 +181,7 @@ def client_program():
     #auth_msg = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     #print("from server:",auth_msg)
     #time.sleep(5)
-
+    
     client_socket.close()  # close the connection
 
 
