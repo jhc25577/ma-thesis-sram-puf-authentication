@@ -33,7 +33,7 @@ def server_program():
     # static private key
     # sk_hex = "0xc82be1019b06e83b2544461c3b3d91e8eb44462e1dcaea6b7441af648a61a3b7"
     # public key
-    pk_hex = eth_k.public.to_hex()
+    pk_hex = eth_k.public_key.to_hex()
     print("Private key: ", sk_hex)
     print("Public key: ", pk_hex)
 
