@@ -77,6 +77,9 @@ def server_program():
         # send public key
         conn.send(f"{pk_hex}".encode())
         # file related stuff
+        msg = conn.recv(BUFFER_SIZE).decode()
+        print("Message from client: ", msg)
+        
         conn.send("Please send the board image".encode(ENCODING))
         received = conn.recv(BUFFER_SIZE).decode()
         filename, filesize = received.split(SEPARATOR)
@@ -91,7 +94,6 @@ def server_program():
             while True:
                 # read 1024 bytes from the socket (receive)
                 bytes_read = conn.recv(BUFFER_SIZE)
-                print("Data: ", bytes_read)
                 if not bytes_read:
                 # terminate file transmitting is done
                     break
