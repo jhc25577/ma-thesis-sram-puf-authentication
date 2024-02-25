@@ -159,9 +159,6 @@ def client_program():
             eccData = base64.b64encode(dec)
             i = 0
             print("Encrypted")
-            # testing encryption
-            with open("encrypted_img.png", "wb") as f:
-                f.write(eccData)
             while True:
                 # read the bytes from the file
                 bytes_read = eccData[i*BUFFER_SIZE:(i+1)*BUFFER_SIZE]

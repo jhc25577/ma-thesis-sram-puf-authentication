@@ -2,10 +2,13 @@ import socket
 import os
 import time
 import errno
+import ecies
+import base64
 
 def client_program():
     # host = "192.168.178.40"  # when considering static ip
-    host = "rp-labs1.local"  # assign hostname
+    host = "132.231.14.165" # new static ip
+    # host = "rp-labs1.local"  # assign hostname
     port = 18000  # socket server port number
 
     client_socket = socket.socket()  # instantiate client socket
@@ -58,7 +61,12 @@ def client_program():
 
     print("Sending auth request to server...")
     time.sleep(3)
-  
+
+    # receive public key from server
+    PubKey = client_socket.recv(BUFFER_SIZE).decode()
+    print("From server public key: ", PubKey)
+
+    client_socket.send("Public key received".encode("utf-8"))
      
     msg = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     print("From server:", msg)
@@ -69,20 +77,27 @@ def client_program():
             
         print("Sending image:", filename)
  
-        
         # send the filename and filesize
         client_socket.send(f"{filename}{SEPARATOR}{filesize}".encode())
         
         # open the file in read binary mode
         with open(filename, "rb") as file:
+            # base 64 encoder for null/special bytes
+            enc = base64.b64encode(file.read())
+            dec = ecies.encrypt(PubKey, enc)
+            eccData = base64.b64encode(dec)
+            i = 0
+            print("Encrypted")
             while True:
                 # read the bytes from the file
-                bytes_read = file.read(BUFFER_SIZE)
+                bytes_read = eccData[i*BUFFER_SIZE:(i+1)*BUFFER_SIZE]
+                
                 if not bytes_read:
                     # file transmitting is done
                     break
                 # sendall to assure transimission in busy networks
                 client_socket.sendall(bytes_read)
+                i = i+1
     
     except BrokenPipeError:
         print("Connection closed by remote server.. try again!")
