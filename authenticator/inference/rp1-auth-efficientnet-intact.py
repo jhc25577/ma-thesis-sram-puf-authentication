@@ -4,14 +4,13 @@ import os
 import model_inference as mi
 import argparse
 import ecies
-import tempfile
 from ecies.utils import generate_eth_key, generate_key
 import base64
 
 def server_program():
     # get the hostname/ip address
-    host = "132.231.14.165"
     # host = "192.168.178.40" ## considering when static ip
+    host = "132.231.14.165" # new static ip
     # host = "rp-labs1.local"
     port = 18000  #  port no above reserved ports (1024)
 
@@ -30,8 +29,7 @@ def server_program():
     eth_k = generate_eth_key()
     # private key
     sk_hex = eth_k.to_hex()
-    # static private key
-    # sk_hex = "0xc82be1019b06e83b2544461c3b3d91e8eb44462e1dcaea6b7441af648a61a3b7"
+    # sk_hex = "0xc82be1019b06e83b2544461c3b3d91e8eb44462e1dcaea6b7441af648a61a3b7"  # static private key
     # public key
     pk_hex = eth_k.public_key.to_hex()
     print("Private key: ", sk_hex)
@@ -106,8 +104,6 @@ def server_program():
             img = base64.b64decode(dec)
             f.write(img)
 
-            
-
         print("File received. model being executed..")
         time.sleep(2)
 
@@ -115,7 +111,7 @@ def server_program():
         #model = "/home/pi1/tflite/SRAM-PUF-AUTH/authenticator/efficientnet/model.tflite"
 
         # calling efficientnet_lite model (locally trained) for classification
-        # model = "/home/pi1/tflite/SRAM-PUF-AUTH/authenticator/efficientnet/local-intact/model.tflite"
+        # model = "/home/jojo755767/Documents/ma-thesis-sram-puf-authentication/authenticator/efficientnet/local-intact/model.tflite"
 
         # calling efficientnet_lite model (locally trained with 5 boards) for classification
         model = "/home/jojo755767/Documents/ma-thesis-sram-puf-authentication/authenticator/efficientnet/local-intact/5-boards/model.tflite"

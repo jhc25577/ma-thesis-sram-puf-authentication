@@ -3,11 +3,15 @@ import time
 import os
 import model_inference as mi
 import argparse
+import ecies
+from ecies.utils import generate_eth_key, generate_key
+import base64
 
 def server_program():
     # get the hostname/ip address
     # host = "192.168.178.40" ## considering when static ip
-    host = "rp-labs1.local"
+    host = "132.231.14.165" # new static ip
+    # host = "rp-labs1.local"
     port = 18000  #  port no above reserved ports (1024)
 
     server_socket = socket.socket()  # get socket instance
@@ -20,6 +24,16 @@ def server_program():
     BUFFER_SIZE = 4096
     SEPARATOR = "<SEPARATOR>"
     ENCODING = "utf-8"
+
+    # create a public and private key using ecies
+    eth_k = generate_eth_key()
+    # private key
+    sk_hex = eth_k.to_hex()
+    # sk_hex = "0xc82be1019b06e83b2544461c3b3d91e8eb44462e1dcaea6b7441af648a61a3b7"  # static private key
+    # public key
+    pk_hex = eth_k.public_key.to_hex()
+    print("Private key: ", sk_hex)
+    print("Public key: ", pk_hex)
 
     # configure how many client the server can listen simultaneously
     server_socket.listen(1)
@@ -58,6 +72,12 @@ def server_program():
     if board in devices:
         time.sleep(2)
         
+        # send public key
+        conn.send(f"{pk_hex}".encode())
+        # file related stuff
+        msg = conn.recv(BUFFER_SIZE).decode()
+        print("Message from client: ", msg)
+
         # file related stuff
         conn.send("Please send the board image".encode(ENCODING))
         received = conn.recv(BUFFER_SIZE).decode()
@@ -67,8 +87,9 @@ def server_program():
         # informing the recived file 
         print("Receiving file:", filename)
 
-        
-        with open(filename, "wb") as file:
+        # store encrypted image as a byte array
+        ecc = bytearray()
+        with open(filename, "wb") as f:
             while True:
                 # read 1024 bytes from the socket (receive)
                 bytes_read = conn.recv(BUFFER_SIZE)
@@ -76,13 +97,19 @@ def server_program():
                 # terminate file transmitting is done
                     break
                 # write to the file the bytes we just received
-                file.write(bytes_read)
+                ecc.extend(bytes_read)
+            # base64 decoding before/after decrypting
+            print("Decrypting...")
+            enc = base64.b64decode(bytes(ecc))
+            dec = ecies.decrypt(sk_hex, enc)
+            img = base64.b64decode(dec)
+            f.write(img)
 
         print("File received. model being executed..")
         time.sleep(2)
 
         # calling mobilenet model for classification
-        model = "/home/pi1/tflite/SRAM-PUF-AUTH/authenticator/mobilenet/noisy/model.tflite"
+        model = "/home/jojo755767/Documents/ma-thesis-sram-puf-authentication/authenticator/mobilenet/noisy/model.tflite"
 
         image = filename
         score, label = mi.classify_image(model,image)  
