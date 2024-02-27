@@ -84,6 +84,8 @@ def server_program():
         conn.send("Please send the board image".encode(ENCODING))
         received = conn.recv(BUFFER_SIZE).decode()
         filename, filesize, nonce_r = received.split(SEPARATOR)
+        nonce_d = ecies.decrypt(sk_hex, nonce_r)
+        # if nonce does not match, disconnect due to replay attack possibility
         if nonce_r != nonce:
             print("Nonce is incorrect. Breaking connection due to possible replay attack")
             conn.close()  # close the connection
