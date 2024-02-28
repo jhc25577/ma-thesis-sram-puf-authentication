@@ -142,8 +142,7 @@ def client_program():
     client_socket.send("Public key received".encode("utf-8"))
     msg = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     print("From server:", msg)
-
-    nonce_r = ecies.encrypt(PubKey, nonce)
+    nonce_r = ecies.encrypt(PubKey, bytes(nonce))
    
     ## sending image for authentication
 
