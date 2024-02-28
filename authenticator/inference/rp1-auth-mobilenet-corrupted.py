@@ -7,6 +7,16 @@ import ecies
 from ecies.utils import generate_eth_key, generate_key
 import base64
 import secrets
+import json
+
+def update_nonce_list(nonce):
+    nonce_data = {"nonce": nonce}
+    with open("old_nonces.json") as f:
+        outdated = json.load(f)
+    outdated.update(nonce_data)
+    with open("old_nonces.json", "w") as f:
+        json.dump(outdated, f)
+
 
 def server_program():
     # get the hostname/ip address
@@ -72,8 +82,17 @@ def server_program():
     if board in devices:
         time.sleep(2)
         
-        # create a nonce (secure random number)
+        # create a nonce (secure random number) that was not used before
         nonce = secrets.randbits(32)
+        with open("old_nonces.json") as f:
+            old_nonces = json.load(f)
+        # if generated nonce was used before, generate again
+        while True:
+            nonce = secrets.randbits(32)
+            if not any(n["nonce"] == nonce for n in old_nonces):
+                break
+        update_nonce_list(nonce)
+
         # send public key and nonce
         conn.send(f"{pk_hex}{SEPARATOR}{nonce}".encode())
         # file related stuff
@@ -86,7 +105,7 @@ def server_program():
         filename, filesize, nonce_r = received.split(SEPARATOR)
         nonce_d = ecies.decrypt(sk_hex, nonce_r)
         # if nonce does not match, disconnect due to replay attack possibility
-        if nonce_r != nonce:
+        if nonce_d != nonce:
             print("Nonce is incorrect. Breaking connection due to possible replay attack")
             conn.close()  # close the connection
             server_socket.close() # close the server socket
