@@ -10,10 +10,9 @@ import secrets
 import json
 
 def update_nonce_list(nonce):
-    nonce_data = {"nonce": nonce}
     with open("old_nonces.json") as f:
         outdated = json.load(f)
-    outdated.update(nonce_data)
+        outdated.append(nonce)
     with open("old_nonces.json", "w") as f:
         json.dump(outdated, f)
 
@@ -84,12 +83,15 @@ def server_program():
         
         # create a nonce (secure random number) that was not used before
         nonce = secrets.randbits(32)
+        # TODO: if file doesn't exist, create it with empty list
         with open("old_nonces.json") as f:
             old_nonces = json.load(f)
         # if generated nonce was used before, generate again
         while True:
             nonce = secrets.randbits(32)
-            if not any(n["nonce"] == nonce for n in old_nonces):
+            if not old_nonces:
+                break
+            if not any(n == nonce for n in old_nonces):
                 break
         update_nonce_list(nonce)
 
